@@ -1,20 +1,19 @@
 = jvm-* files
 
 Several files for JVM configuration are included in Cassandra. The
-`jvm-server.options` file, and corresponding JDK specific files
-`jvmN-server.options` are the main file for settings that affect
-the operation of the Cassandra JVM on cluster nodes. The file includes
-startup parameters, general JVM settings such as garbage collection, and
-heap settings. Likewise, the `jvm-clients.options` and corresponding
-`jvmN-clients.options` files can be used to configure JVM settings for
-clients like `nodetool` and the `sstable` tools.
+`jvm-server.options` file and the JDK-specific `jvmN-server.options`
+files are the main place for static JVM settings on cluster nodes.
+Likewise, the `jvm-clients.options` and corresponding
+`jvmN-clients.options` files configure JVM settings for tools like
+`nodetool` and `sstableloader`.
 
-See each file for examples of settings.
+Use these files for settings that do not need to be computed from the
+host at startup. If a value depends on node state or host-specific
+resources, keep it in `cassandra-env.sh` instead.
 
 [NOTE]
 ====
-The `jvm-\*` files replace the `cassandra-env.sh` file used in Cassandra
-versions prior to Cassandra 3.0. The `cassandra-env.sh` bash script file
-is still useful if JVM settings must be dynamically calculated based on
-system settings. The `jvm-*` files only store static JVM settings.
+The `jvm-*` files replaced `cassandra-env.sh` for static JVM settings in
+Cassandra 3.0 and later. `cassandra-env.sh` still matters when the JVM
+options must be derived from the machine.
 ====

@@ -1,18 +1,23 @@
 = Repair
 
-Cassandra is designed to remain available if one of it's nodes is down
-or unreachable. However, when a node is down or unreachable, it needs to
+Cassandra is designed to remain available if one of its nodes is down or
+unreachable. However, when a node is down or unreachable, it needs to
 eventually discover the writes it missed. Hints attempt to inform a node
-of missed writes, but are a best effort, and aren't guaranteed to inform
-a node of 100% of the writes it missed. These inconsistencies can
-eventually result in data loss as nodes are replaced or tombstones
-expire.
+of missed writes, but are a best effort and are not guaranteed to deliver
+every missed write. If a node stays unavailable long enough for hints to
+expire, or if tombstones are not repaired before `gc_grace_seconds`
+expires, deleted data can reappear and replicas can remain permanently
+divergent.
 
 These inconsistencies are fixed with the repair process. Repair
 synchronizes the data between nodes by comparing their respective
 datasets for their common token ranges, and streaming the differences
 for any out of sync sections between the nodes. It compares the data
 with merkle trees, which are a hierarchy of hashes.
+
+If you only need the short version: read this page first, then read
+xref:managing/operating/auto_repair.adoc[Auto Repair] if you want
+Cassandra to schedule the same underlying work automatically.
 
 == Incremental and Full Repairs
 
@@ -28,6 +33,11 @@ marks data as repaired, it won't try to repair it again. This is fine
 for syncing up missed writes, but it doesn't protect against things like
 disk corruption, data loss by operator error, or bugs in Cassandra. For
 this reason, full repairs should still be run occasionally.
+
+In practice, repair is the mechanism that keeps hints from being the
+only line of defense. If a replica is down too long, repair is what
+brings the cluster back to a common view of deletes and missed writes
+before those differences turn into zombies.
 
 == Automated Repair Scheduling
 

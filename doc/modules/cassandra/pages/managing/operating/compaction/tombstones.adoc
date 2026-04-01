@@ -19,10 +19,12 @@ After `gc_grace_seconds` has elapsed, the data is eligible for permanent removal
 ====
 
 == Why tombstones?
- 
+
 The tombstone represents the deletion of an object, either a row or column value.
 This approach is used instead of removing values because of the distributed nature of {cassandra}.
 Once an object is marked as a tombstone, queries will ignore all values that are time-stamped previous to the tombstone insertion.
+The operator consequence is that deletes only stay safe if replicas see the tombstone before `gc_grace_seconds` expires.
+That is why repair frequency and `gc_grace_seconds` must be planned together.
 
 == Preventing Data Resurrection
 

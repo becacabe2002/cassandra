@@ -27,7 +27,8 @@ role_name_policy:
 `UUIDRoleNameGenerator` is the only built-in implementation of a generator which generates role names. As
 its name suggests, generated role names will be UUIDs (without hyphens) and their first character will be always a letter.
 
-Once enabled (together with `CassandraRoleManager` as `role_manager`), a user might execute these queries:
+Once enabled together with `CassandraRoleManager` as `role_manager`,
+an operator or application can use these statements:
 
 The most simple variation is:
 
@@ -111,6 +112,20 @@ fail role creation if a user happened to specify it manually.
 The configuration of `role_name_policy` is configurable in runtime via JMX. You get the actual configuration by
 calling `GuardrailsMBean#getRoleNamePolicy()` which returns JSON representation of such a policy as a string. Similarly,
 you can use `GuardrailsMBean#setRoleNamePolicy(String)` to configure it in runtime.
+
+== Operational workflow
+
+A common provisioning flow is:
+
+. Enable the generator and create the account with `CREATE GENERATED
+ROLE WITH GENERATED PASSWORD AND LOGIN = true;`.
+. Capture the returned generated role name and password in your secret
+manager.
+. Grant the new role the permissions it needs for the application.
+. Point the application at the returned credentials and verify that it
+can authenticate.
+. When rotating access, create a new generated role, update the stored
+secret, then revoke and drop the old role.
 
 If you do not want to be able to configure this in runtime, please set `role_name_policy_reconfiguration_enabled`
 in `cassandra.yaml` to `false`.
