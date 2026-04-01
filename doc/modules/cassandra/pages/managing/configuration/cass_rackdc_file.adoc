@@ -1,30 +1,50 @@
 = cassandra-rackdc.properties file
 
-Use `cassandra-rackdc.properties` when the snitch needs to know the
-local rack and datacenter. These values are part of replica placement.
-If the datacenter name here does not match the keyspace replication map,
-Cassandra can place replicas in the wrong failure domain without an
-obvious error.
+Several `snitch` options use the `cassandra-rackdc.properties`
+configuration file to determine which `datacenters` and racks cluster
+nodes belong to. Information about the network topology allows requests
+to be routed efficiently and to distribute replicas evenly. The
+following snitches can be configured here:
 
-Choose the snitch that matches your environment:
+* GossipingPropertyFileSnitch
+* AWS EC2 single-region snitch
+* AWS EC2 multi-region snitch
 
-[cols="1,2,3",options="header"]
-|===
-|Environment |Recommended snitch |Why
-|On-premises or other self-managed infrastructure |GossipingPropertyFileSnitch |Put the rack and datacenter in one local file and gossip them to the rest of the cluster.
-|Single-AZ or single-region AWS |Ec2Snitch |Read the rack and datacenter from AWS metadata instead of managing them by hand.
-|Multi-region AWS |Ec2MultiRegionSnitch |Use when nodes need public-address awareness across regions.
-|Custom or mixed topology metadata |PropertyFileSnitch |Use `cassandra-topologies.properties` when every node needs an explicit, shared topology map.
-|===
+The GossipingPropertyFileSnitch is recommended for production. This
+snitch uses the datacenter and rack information configured in a local
+node's `cassandra-rackdc.properties` file and propagates the information
+to other nodes using `gossip`. It is the default snitch and the settings
+in this properties file are enabled.
 
-The file is case-sensitive. Use the same datacenter spelling that appears
-in your keyspace replication settings.
+The AWS EC2 snitches are configured for clusters in AWS. This snitch
+uses the `cassandra-rackdc.properties` options to designate one of two
+AWS EC2 datacenter and rack naming conventions:
+
+* legacy: Datacenter name is the part of the availability zone name
+preceding the last "-" when the zone ends in -1 and includes the number
+if not -1. Rack name is the portion of the availability zone name
+following the last "-".
++
+____
+Examples: us-west-1a => dc: us-west, rack: 1a; us-west-2b => dc:
+us-west-2, rack: 2b;
+____
+* standard: Datacenter name is the standard AWS region name, including
+the number. Rack name is the region plus the availability zone letter.
++
+____
+Examples: us-west-1a => dc: us-west-1, rack: us-west-1a; us-west-2b =>
+dc: us-west-2, rack: us-west-2b;
+____
+
+Either snitch can set to use the local or internal IP address when
+multiple datacenters are not communicating.
 
 == GossipingPropertyFileSnitch
 
 === `dc`
 
-Datacenter name. The value is case-sensitive.
+Name of the datacenter. The value is case-sensitive.
 
 *Default value:* DC1
 
@@ -45,12 +65,14 @@ Datacenter and rack naming convention. Options are `legacy` or
 
 [NOTE]
 ====
-Use the `legacy` value if you are upgrading a pre-4.0 cluster.
+YOU MUST USE THE `legacy` VALUE IF YOU ARE UPGRADING A PRE-4.0 CLUSTER.
 ====
+
+== Either snitch
 
 === `prefer_local`
 
-Use the local or internal IP address when communication is not across
-different datacenters. *This option is commented out by default.*
+Option to use the local or internal IP address when communication is not
+across different datacenters. *This option is commented out by default.*
 
 *Default value:* true

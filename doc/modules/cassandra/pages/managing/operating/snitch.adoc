@@ -1,22 +1,14 @@
 = Snitch
 
-In Cassandra, the snitch has two functions:
+In cassandra, the snitch has two functions:
 
 * it teaches Cassandra enough about your network topology to route
 requests efficiently.
-* it allows Cassandra to place replicas around your cluster to avoid
+* it allows Cassandra to spread replicas around your cluster to avoid
 correlated failures. It does this by grouping machines into
 "datacenters" and "racks." Cassandra will do its best not to have more
 than one replica on the same "rack" (which may not actually be a
 physical location).
-
-The snitch does not move data; it only informs routing and replica
-placement.
-
-Use the same datacenter and rack names here as you use in
-`cassandra-rackdc.properties` or `cassandra-topologies.properties` and
-as your keyspace replication expects. If those names do not line up,
-replica placement can be wrong.
 
 == Dynamic snitching
 
@@ -49,8 +41,7 @@ implementations:
 GossipingPropertyFileSnitch::
   This should be your go-to snitch for production use. The rack and
   datacenter for the local node are defined in
-  xref:cassandra:managing/configuration/cass_rackdc_file.adoc[cassandra-rackdc.properties]
-  and propagated to other nodes via gossip.
+  cassandra-rackdc.properties and propagated to other nodes via gossip.
   If `cassandra-topology.properties` exists, it is used as a fallback,
   allowing migration from the PropertyFileSnitch.
 SimpleSnitch::

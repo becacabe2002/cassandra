@@ -16,26 +16,6 @@ As SSTables accumulate, the distribution of data can require accessing more and 
 To keep the database healthy, Cassandra periodically merges SSTables and discards old data. 
 This process is called https://cassandra.apache.org/_/glossary.html#compaction[compaction].
 
-For operators, the practical effect is simple: fewer SSTables means fewer files to consult on reads, less disk spent on
-obsolete versions, and fewer tombstones waiting to be purged by later compactions.
-
-[source,text]
-----
-memtables flush
-      |
-      v
-   SSTables on disk
-      |
-      v
-compaction selects overlapping SSTables
-      |
-      v
-merge newest rows and drop shadowed data when safe
-      |
-      v
- fewer, cleaner SSTables
-----
-
 == Why must compaction be run?
 
 Since SSTables are consulted during read operations, it is important to keep the number of SSTables small.
@@ -99,18 +79,6 @@ With LCS the resulting SSTable will end up in L0.
 
 Different compaction strategies are available to optimize for different workloads.
 Picking the right compaction strategy for your workload will ensure the best performance for both querying and for compaction itself.
-
-The table below is a starting point, not a hard rule. Use it to pick the first strategy for a table, then tune only after
-observing read amplification, write amplification, and tombstone pressure in your cluster.
-
-[cols="1,2,2",options="header"]
-|===
-| Strategy | Good starting point | Watch for
-| UCS | New tables and mixed workloads | Tune `scaling_parameters`, `target_sstable_size`, and `base_shard_count` after observing real read/write pressure.
-| STCS | Simple fallback when another strategy does not fit | Higher read amplification on read-heavy workloads and more overlap between SSTables.
-| LCS | Read-heavy workloads with lots of updates and deletes | Extra write amplification and higher compaction cost.
-| TWCS | TTL-heavy, mostly immutable time-series data | Data with mixed lifetimes can make expired SSTables harder to drop.
-|===
 
 xref:cassandra:managing/operating/compaction/ucs.adoc[`Unified Compaction Strategy (UCS)`]::
 UCS is a good choice for most workloads and is recommended for new workloads.

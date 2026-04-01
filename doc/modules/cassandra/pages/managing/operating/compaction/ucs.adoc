@@ -5,13 +5,8 @@
 The `UnifiedCompactionStrategy (UCS)` is recommended for most workloads, whether read-heavy, write-heavy, mixed read-write, or time-series.
 There is no need to use legacy compaction strategies, because UCS can be configured to behave like any of them.
 
-For operators, the useful mental model is: UCS starts with flushed SSTables, groups them into sharded levels, and then
-keeps compacting them toward a target size and density. That lets the same table behave more like STCS, LCS, or TWCS
-without requiring a full strategy swap.
-
 UCS is a compaction strategy that combines the best of the other strategies plus new features.
-UCS has been designed to maximize the speed of compactions, which is crucial for high-density nodes, using a unique
-sharding mechanism that compacts partitioned data in parallel.
+UCS has been designed to maximize the speed of compactions, which is crucial for high-density nodes, using an unique sharding mechanism that compacts partitioned data in parallel.
 And whereas STCS, LCS, or TWCS will require full compaction of the data if the compaction strategy is changed, UCS can change parameters in flight to switch from one strategy to another.
 In fact, a combination of different compaction strategies can be used at the same time, with different parameters for each level of the hierarchy.
 Finally, UCS is stateless, so it does not rely on any metadata to make compaction decisions.
@@ -22,20 +17,6 @@ Two key concepts refine the definition of the grouping:
 Thus, a compaction is triggered when more than a given number of SSTables are present on one level.
 * *size* can be replaced by *density*, allowing SSTables to be split at arbitrary points when the output of a compaction is written, while still producing a leveled hierarchy.  
 Density is defined as the size of an SSTable divided by the width of the token range it covers.
-
-[source,text]
-----
-memtable flushes
-      |
-      v
-sharded SSTables in L0
-      |
-      v
-density-based leveling and splitting
-      |
-      v
-non-overlapping SSTables at higher levels
-----
 
 == Migration from Other Strategies
 
@@ -442,6 +423,7 @@ There are two extensions currently implemented, SSTable growth and a minimum SST
 
 First, let's examine the case when the size of the data set is expected to grow very large.
 To avoid pre-specifying a sufficiently large target size to avoid problems with per-SSTable overhead, an `SSTtable growth` parameter has been implemented.
+// LLP: I don't know what this means: determines what part of the density growth should be assigned to increased SSTable size
 This parameter determines what part of the density growth should be assigned to increased SSTable size, reducing the growth of the number of shards, and hence, non-overlapping SSTables.
 
 The second extension is a mode of operation with a fixed number of shards that splits conditionally on reaching a minimum size.
@@ -541,7 +523,8 @@ In addition to `TRANSITIVE`, "overlap inclusion methods" of `NONE` and `SINGLE` 
 
 In normal operation, we compact all SSTables in the compaction bucket. 
 If compaction is very late, we may apply a limit on the number of overlapping sources we compact.
-In that case, we use the collection of oldest SSTables that keeps every included overlap set under the configured overlap limit, making sure that if an SSTable is included in this compaction, all older ones are also included to maintain time order.
+// LLP: What does limit-many mean in the next sentence?
+In that case, we use the collection of oldest SSTables that would select at most limit-many in any included overlap set, making sure that if an SSTable is included in this compaction, all older ones are also included to maintain time order.
 
 === Selecting the compaction to run
 

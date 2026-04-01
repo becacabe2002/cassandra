@@ -21,10 +21,6 @@ Apache Cassandra supports two kinds of backup strategies.
 A _snapshot_ is a copy of a table’s SSTable files at a given time,
 created via hard links.
 The DDL to create the table is stored as well.
-Because snapshots are hard links to the existing SSTable files, they are
-lightweight, but they are not a separate physical copy on different
-storage. If the underlying SSTable files are removed or the disk is
-lost, the snapshot goes with them.
 Snapshots may be created by a user or created automatically.
 The setting `snapshot_before_compaction` in the `cassandra.yaml` file determines if
 snapshots are created before each compaction.

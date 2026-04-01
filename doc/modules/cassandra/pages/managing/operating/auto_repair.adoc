@@ -7,9 +7,6 @@ Auto Repair is a fully automated scheduler that provides repair orchestration wi
 significantly reduces operational overhead by eliminating the need for operators to deploy external tools to submit and
 manage repairs.
 
-Read xref:managing/operating/repair.adoc[Repair] first if you want the underlying repair behavior before you tune the
-scheduler.
-
 At a high level, a dedicated thread pool is assigned to the repair scheduler. The repair scheduler in Cassandra
 maintains a new replicated table, `system_distributed.auto_repair_history`, which stores the repair history for all
 nodes, including details such as the last repair time. The scheduler selects the node(s) to begin repairs and
@@ -65,8 +62,8 @@ a smaller set of data, so a shorter `min_repair_interval` such as `1h` is recomm
 ==== Enabling Incremental Repair on existing clusters with a large amount of data
 [#enabling-ir]
 One should be careful when enabling incremental repair on a cluster for the first time. While
-xref:#repair-token-range-splitter[RepairTokenRangeSplitter] includes a default configuration to attempt to
-gracefully migrate to incremental repair over time, failure to take proper precaution could overwhelm the cluster with
+xref:#repair-token-range-splitter[RepairTokenRangeSplitter] includes a default configuration to attempt to gracefully
+migrate to incremental repair over time, failure to take proper precaution could overwhelm the cluster with
 xref:managing/operating/compaction/overview.adoc#types-of-compaction[anticompactions].
 
 No matter how one goes about enabling and running incremental repair, it is recommended to run a cycle of full repairs
@@ -104,10 +101,6 @@ The xref:#repair-token-range-splitter[token_range_splitter] configuration for in
 configuration that attempts to conservatively migrate 100GiB of compressed data every day per node. Depending on
 requirements, data set and capability of a cluster's hardware, one may consider tuning these values to be more
 aggressive or conservative.
-
-For example, on a large cluster with wide tables or STCS data that will need a lot of anticompaction, start with the
-default splitter and full repairs first, then keep the incremental schedule conservative until you have observed the
-impact on compaction, repair duration, and disk usage. That ordering is an operator choice, not a Cassandra guarantee.
 
 === Previewing Repaired Data
 
@@ -244,7 +237,7 @@ disturbances or failures. However, making the repairs too short can lead to over
 the main bottleneck.
 
 - *Minimize the impact on hosts*: Repairs should not heavily affect the host systems. For incremental repairs, this
-  might involve anticompaction work. In full repairs, streaming large amounts of data—especially with wide partitions
+might involve anti-compaction work. In full repairs, streaming large amounts of data—especially with wide partitions
 can lead to issues with disk usage and higher compaction costs.
 
 - *Reduce overstreaming*: The Merkle tree, which represents data within each partition and range, has a maximum size.

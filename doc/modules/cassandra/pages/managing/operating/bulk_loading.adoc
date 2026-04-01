@@ -34,14 +34,6 @@ The `sstableloader` is the main tool for bulk uploading data.
 conforming to the replication strategy and replication factor.
 The table to upload data to does need not to be empty.
 
-Before you run `sstableloader`, verify these prerequisites:
-
-* the target keyspace and table already exist
-* the SSTables were produced by a compatible Cassandra version
-* the directory path matches the target `keyspace/table` name
-* you know which live nodes to use with `--nodes`
-* there is enough disk and network capacity for the stream and the follow-up compaction work
-
 The only requirements to run `sstableloader` are:
 
 * One or more comma separated initial hosts to connect to and get ring
@@ -198,13 +190,6 @@ id | name                      | publisher
 
 (2 rows)
 ----
-
-Also verify cluster-side effects after the load:
-
-* `nodetool status` still shows the target nodes as `UN`
-* `nodetool netstats` or server logs show the streaming finished cleanly
-* the expected row counts or sample queries succeed from client traffic
-* disk usage and pending compactions are within the range you expect for the imported SSTables
 
 ==== Bulk Loading from a Snapshot
 

@@ -1,16 +1,19 @@
 = cassandra-topologies.properties file
 
-Use `cassandra-topologies.properties` with `PropertyFileSnitch` when you
-want every node's datacenter and rack to come from an explicit file. The
-file must be identical on every node. If any node disagrees, Cassandra
-can make inconsistent replica-placement decisions.
+The `PropertyFileSnitch` `snitch` option uses the
+`cassandra-topologies.properties` configuration file to determine which
+`datacenters` and racks cluster nodes belong to. If other snitches are
+used, the xref:cassandra:managing/configuration/cass_rackdc_file.adoc[cassandra-rackdc.properties] must be used. The snitch determines
+network topology (proximity by rack and datacenter) so that requests are
+routed efficiently and allows the database to distribute replicas
+evenly.
 
-The datacenter and rack names are case-sensitive and should match the
-names used in your keyspace replication settings.
+Include every node in the cluster in the properties file, defining your
+datacenter names as in the keyspace definition. The datacenter and rack
+names are case-sensitive.
 
-If you use a snitch other than `PropertyFileSnitch`, use
-xref:cassandra:managing/configuration/cass_rackdc_file.adoc[cassandra-rackdc.properties]
-instead.
+The `cassandra-topologies.properties` file must be copied identically to
+every node in the cluster.
 
 == Example
 

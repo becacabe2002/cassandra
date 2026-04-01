@@ -144,7 +144,7 @@ Result::
 --
 [source,console]
 ----
-include::cassandra:example$RESULTS/curl_verify_sha.result[]
+include::example$RESULTS/curl_verify_sha.result[]
 ----
 --
 ====
@@ -155,7 +155,7 @@ include::cassandra:example$RESULTS/curl_verify_sha.result[]
 include::cassandra:example$BASH/tarball.sh[]
 ----
 +
-The files are extracted to an `apache-cassandra-<version>/` directory.
+The files will be extracted to the `apache-cassandra-4.0.0/` directory.
 This is the tarball installation location.
 . Located in the tarball installation location are the directories for the scripts, binaries, utilities, configuration, data and log files:
 +
