@@ -1,12 +1,22 @@
 = Configuring Cassandra
 :navtitle: Configuring
 
-This section describes how to configure Apache Cassandra.
+This section explains where Cassandra configuration lives, which file to
+edit for a given change, and what to verify after the change.
 
-* xref:cassandra:managing/configuration/cass_yaml_file.adoc[cassandra.yaml]
-* xref:cassandra:managing/configuration/cass_rackdc_file.adoc[cassandra-rackdc.properties]
-* xref:cassandra:managing/configuration/cass_env_sh_file.adoc[cassandra-env.sh]
-* xref:cassandra:managing/configuration/cass_topo_file.adoc[cassandra-topologies.properties]
-* xref:cassandra:managing/configuration/cass_cl_archive_file.adoc[commitlog-archiving.properties]
-* xref:cassandra:managing/configuration/cass_logback_xml_file.adoc[logback.xml]
-* xref:cassandra:managing/configuration/cass_jvm_options_file.adoc[jvm-* files]
+Start with the file that matches the setting you need:
+
+* xref:cassandra:managing/configuration/cass_yaml_file.adoc[cassandra.yaml] for cluster behavior and table defaults
+* xref:cassandra:managing/configuration/cass_jvm_options_file.adoc[jvm-* files] for static JVM settings
+* xref:cassandra:managing/configuration/cass_env_sh_file.adoc[cassandra-env.sh] for startup values that depend on the host
+* xref:cassandra:managing/configuration/cass_rackdc_file.adoc[cassandra-rackdc.properties] for rack and datacenter metadata
+* xref:cassandra:managing/configuration/cass_topo_file.adoc[cassandra-topologies.properties] for explicit per-node topology mapping
+* xref:cassandra:managing/configuration/cass_cl_archive_file.adoc[commitlog-archiving.properties] for commitlog archiving
+* xref:cassandra:managing/configuration/cass_logback_xml_file.adoc[logback.xml] for logging configuration
+
+If you are changing `cassandra.yaml` parameter names or units, see
+xref:cassandra:managing/configuration/configuration.adoc[Parameter renaming and units].
+
+After a change, restart or reload only if the target page says it is
+safe to do so. Some settings are read once at startup, while others take
+effect only after a full node restart.

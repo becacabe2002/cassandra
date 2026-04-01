@@ -1,32 +1,34 @@
-= Cassandra Quickstart 
+= Cassandra Quickstart
 
 == STEP 1: GET CASSANDRA USING DOCKER
 
-You'll need to have Docker Desktop for Mac, Docker Desktop for Windows, or similar software installed on your computer.
+You'll need Docker Desktop for Mac, Docker Desktop for Windows, or an
+equivalent Docker installation on Linux.
 
-Apache Cassandra is also available as a tarball or package xref:_/download.adoc[download].
+Apache Cassandra is also available as a tarball or package; see the
+xref:installing/installing.adoc[installation guide].
 
-[source, console]
+[source,console]
 ----
 include::cassandra:example$BASH/docker_pull.sh[]
 ----
 
 == STEP 2: START CASSANDRA
 
-A Docker network allows us to access the container's ports without exposing them on the host.
+A Docker network lets you reach the container ports without publishing
+them on the host.
 
-[source, console]
+[source,console]
 ----
 include::cassandra:example$BASH/docker-network-run.sh[]
 ----
 
 == STEP 3: CREATE FILES
 
-The Cassandra Query Language (CQL) is very similar to SQL but suited for the JOINless structure of Cassandra.
+Create a file named `data.cql` and paste the following CQL script in it.
+The script creates a keyspace, a table, and sample rows:
 
-Create a file named data.cql and paste the following CQL script in it. This script will create a keyspace, the layer at which Cassandra replicates its data, a table to hold the data, and insert some data into that table:
-
-[source, cql]
+[source,cql]
 ----
 include::cassandra:example$CQL/create-keyspace-store.cql[]
 
@@ -37,66 +39,76 @@ include::cassandra:example$CQL/insert-shopping-cart-data.cql[]
 
 == STEP 4: LOAD DATA WITH CQLSH
 
-The CQL shell, or `cqlsh`, is one tool to use in interacting with the database. 
-We'll use it to load some data into the database using the script you just saved.
+Use `cqlsh` to load the script into the running container.
 
-[source, console]
+[source,console]
 ----
-include::cassandra:example$BASH/docker-run-cqlsh-load-data.sh[] 
+include::cassandra:example$BASH/docker-run-cqlsh-load-data.sh[]
 ----
 
 [NOTE]
 ====
-The cassandra server itself (the first docker run command you ran) takes a few seconds to start up. 
-The above command will throw an error if the server hasn't finished its init sequence yet, so give it a few seconds to spin up.
+The Cassandra server can take a few seconds to finish starting. If the
+load step fails immediately, wait for the node to finish init and retry.
 ====
 
 == STEP 5: INTERACTIVE CQLSH
 
-Much like an SQL shell, you can also of course use `cqlsh` to run CQL commands interactively.
+You can also use `cqlsh` interactively:
 
-[source, console]
+[source,console]
 ----
 include::cassandra:example$BASH/docker-run-cqlsh-quickstart.sh[]
 ----
 
-This should get you a prompt like so:
+This should get you a prompt like this:
 
-[source, console]
+[source,console]
 ----
 include::cassandra:example$RESULTS/docker-run-cqlsh-quickstart.result[]
 ----
 
 == STEP 6: READ SOME DATA
 
-[source, cql]
+[source,cql]
 ----
-include::cassandra:example$CQL/select-data-from-shopping-cart.cql[]  
+include::cassandra:example$CQL/select-data-from-shopping-cart.cql[]
 ----
 
 == STEP 7: WRITE SOME MORE DATA
 
-[source, cql]
+[source,cql]
 ----
 include::cassandra:example$CQL/insert-more-data-shopping-cart.cql[]
 ----
 
-== STEP 8: CLEAN UP
+== STEP 8: CHECK STATUS
 
-[source, console]
+Before you clean up, confirm the node is healthy. `nodetool status`
+should show the node as `UN`:
+
+[source,console]
+----
+$ nodetool status
+Datacenter: dc1
+=======================
+Status=Up/Down
+|/ State=Normal/Leaving/Joining/Moving
+--  Address      Load       Tokens  Owns (effective)  Host ID                               Rack
+UN  127.0.0.1   123.45 KiB  1       100.0%            01234567-89ab-cdef-0123-456789abcdef  rack1
+----
+
+== STEP 9: CLEAN UP
+
+[source,console]
 ----
 include::cassandra:example$BASH/docker-kill-and-remove.sh[]
 ----
 
+This removes the container and the `cassandra` Docker network created
+for the quickstart.
+
 == CONGRATULATIONS!
 
-Hey, that wasn't so hard, was it?
-
-To learn more, we suggest the following next steps:
-
-* Read through the xref:master@_:ROOT:cassandra-basics.adoc[Cassandra Basics] to learn main concepts and how Cassandra works at a high level.
-* Browse through the xref:master@_:ROOT:case-studies.adoc[Case Studies] to learn how other users in our worldwide community are getting value out of Cassandra.
-
-
-
-
+To learn more, read the xref:master@_:ROOT:cassandra-basics.adoc[Cassandra
+Basics] and xref:master@_:ROOT:case-studies.adoc[Case Studies].

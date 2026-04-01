@@ -1,21 +1,20 @@
-= Liberating cassandra.yaml Parameters' Names from Their Units
+= Parameter renaming and units
+:navtitle: Parameter renaming
 
-== Objective
+This page covers the `cassandra.yaml` renaming work from
+CASSANDRA-15234. It is a reference for translating older examples and
+for checking upgrade compatibility when you touch a renamed setting.
 
-Three big things happened as part of https://issues.apache.org/jira/browse/CASSANDRA-15234[CASSANDRA-15234]:
+== What changed
 
-1) Renaming of parameters in `cassandra.yaml` to follow the form `noun_verb`.
+* Many `cassandra.yaml` parameters were renamed to follow the
+  `noun_verb` pattern.
+* Duration, data storage, and data rate values now accept explicit
+  units.
+* Cassandra still accepts the old names for backward compatibility.
 
-2) Liberating `cassandra.yaml` parameters from their units (DataStorage, DataRate and Duration) and introducing temporary smallest accepted unit per parameter (only for DataStorage and Duration ones)
-
-3) Backward compatibility framework to support the old names and lack of units support until at least the next major release.
-
-
-== Renamed Parameters
-
-The community has decided to allow operators to specify units for Cassandra parameters of types duration, data storage, and data rate.
-All parameters which had a particular unit (most of the time added as a suffix to their name) can be now set by using the format [value][unit]. The unit suffix has been removed from their names.
 Supported units:
+
 [cols=",",options="header",]
 |===
 |Parameter Type |Units Supported
@@ -23,36 +22,6 @@ Supported units:
 |Data Storage | B, KiB, MiB, GiB
 |Data Rate | B/s, MiB/s, KiB/s
 |===
-
-
-*Example*:
-
-Old name and value format:
-....
-permissions_update_interval_ms: 0
-....
-New name and possible value formats:
-....
-permissions_update_interval: 0ms
-permissions_update_interval: 0s
-permissions_update_interval: 0d
-permissions_update_interval: 0us
-permissions_update_interval: 0µs
-....
-
-The work in https://issues.apache.org/jira/browse/CASSANDRA-15234[CASSANDRA-15234] was already quite big, so we decided
-to introduce the notion of the smallest allowed unit per parameter for duration and data storage parameters. What does this mean?
-Cassandra's internals still use the old units for parameters. If, for example, seconds are used internally, but you want
-to add a value in nanoseconds in `cassandra.yaml`, you will get a configuration exception that contains the following information:
-....
-Accepted units: seconds, minutes, hours, days.
-....
-
-Why was this needed?
-Because we can run into precision issues. The full solution to the problem is to convert internally all parameters’ values
-to be manipulated with the smallest supported by Cassandra unit. A series of tickets to assess and maybe migrate to the smallest unit
-our parameters (incrementally, post https://issues.apache.org/jira/browse/CASSANDRA-15234[CASSANDRA-15234]) will be opened in the future.
-
 
 [cols=",,",options="header",]
 |===
@@ -144,77 +113,31 @@ our parameters (incrementally, post https://issues.apache.org/jira/browse/CASSAN
 |cache_load_timeout_seconds |cache_load_timeout |s
 |===
 
-Another TO DO is to add JMX methods supporting the new format. However, we may abandon this if virtual tables support
-configuration changes in the near future.
+== Example
 
-*Notes for Cassandra Developers*:
+If you change this:
 
-- Most of our parameters are already moved to the new framework as part of https://issues.apache.org/jira/browse/CASSANDRA-15234[CASSANDRA-15234].
-`@Replaces` is the annotation to be used when you make changes to any configuration parameters in `Config` class and `cassandra.yaml`, and you want to add backward
-compatibility with previous Cassandra versions. `Converters` class enumerates the different methods used for backward compatibility.
-`IDENTITY` is the one used for name change only. For more information about the other Converters, please, check the JavaDoc in the class.
-For backward compatibility virtual table `Settings` contains both the old and the new
-parameters with the old and the new value format. Only exception at the moment are the following three parameters: `key_cache_save_period`,
-`row_cache_save_period` and `counter_cache_save_period` which appear only once with the new value format.
-The old names and value format still can be used at least until the next major release. Deprecation warning is emitted on startup.
-If the parameter is of type duration, data rate or data storage, its value should be accompanied by a unit when new name is used.
-
-- Please follow the new format `noun_verb` when adding new configuration parameters.
-
-- Please consider adding any new parameters with the lowest supported by Cassandra unit when possible. Our new types also
-support long and integer upper bound, depending on your needs. All options for configuration parameters' types are nested
-classes in our three main abstract classes - `DurationSpec`, `DataStorageSpec`, `DataRateSpec`.
-
-- If for some reason you consider the smallest unit for a new parameter shouldn’t be the one that is supported as such in
-Cassandra, you can use the rest of the nested classes in `DurationSpec`, `DataStorageSpec`. The smallest allowed unit is
-the one we use internally for the property, so we don't have to do conversions to bigger units which will lead to precision
-problems. This is a problem only with `DurationSpec` and `DataStorageSpec`. `DataRateSpec` is handled internally in double.
-
-- New parameters should be added as non-negative numbers. For parameters where you would have set -1 to disable in the past, you might
-want to consider a separate flag parameter or null value. In case you use the null value, please, ensure that any default value
-introduced in the DatabaseDescriptor to handle it is also duplicated in any related setters.
-
-- Parameters of type data storage, duration and data rate cannot be set to Long.MAX_VALUE (former parameters of long type)
-and Integer.MAX_VALUE (former parameters of int type). That numbers are used during conversion between units to prevent
-an overflow from happening.
-
-- Any time you add @Replaces with a name change, we need to add an entry in this https://github.com/riptano/ccm/blob/808b6ca13526785b0fddfe1ead2383c060c4b8b6/ccmlib/common.py#L62[Python dictionary in CCM] to support the same backward compatibility as SnakeYAML.
-
-Please follow the instructions in requirements.txt in the DTest repo how to retag CCM after committing any changes.
-You might want to test also with tagging in your repo to ensure that there will be no surprise after retagging the official CCM.
-Please be sure to run a full CI after any changes as CCM affects a few of our testing suites.
-
-- Some configuration parameters are not announced in cassandra.yaml, but they are presented in the Config class for advanced users.
-Those also should be using the new framework and naming conventions.
-
-- As we have backward compatibility, we didn’t have to rework all python DTests to set config in the new format, and we exercise
-the backward compatibility while testing. Please consider adding any new tests using the new names and value format though.
-
-- In-JVM upgrade tests do not support per-version configuration at the moment, so we have to keep the old names and value format.
-Currently, if we try to use the new config for a newer version, that will be silently ignored and default config will be used.
-
-- SnakeYAML supports overloading of parameters. This means that if you add a configuration parameter more than once in your `cassandra.yaml` -
-the latest occasion will be the one to load in Config during Cassandra startup. In order to make upgrades as less disruptive as possible,
-we continue supporting that behavior also with adding old and new names of a parameter into `cassandra.yaml`.
-
-- Please ensure that any JMX setters/getters update the Config class properties and not some local copies. Settings Virtual Table
-reports the configuration loaded at any time from the Config class.
-
-*Example*:
-
-If you add the following to `cassandra.yaml`:
 ....
-hinted_handoff_enabled: true
-enabled_hinted_handolff: false
+permissions_update_interval_ms: 0
 ....
 
-you will get loaded in `Config`:
+use this instead:
+
 ....
-hinted_handoff_enabled: false
+permissions_update_interval: 0ms
 ....
 
-https://issues.apache.org/jira/browse/CASSANDRA-17379[CASSANDRA-17379] was opened to improve the user experience and deprecate the overloading.
-By default, we refuse starting Cassandra with a config containing both old and new config keys for the same parameter. Start
-Cassandra with `-Dcassandra.allow_new_old_config_keys=true` to override. For historical reasons duplicate config keys
-in `cassandra.yaml` are allowed by default, start Cassandra with `-Dcassandra.allow_duplicate_config_keys=false` to disallow this.
-Please note that `key_cache_save_period`, `row_cache_save_period`, `counter_cache_save_period` will be affected only by `-Dcassandra.allow_duplicate_config_keys`.
+If you choose a unit smaller than Cassandra stores internally, the
+configuration fails with an accepted-units message rather than silently
+truncating the value. That is intentional and avoids precision loss.
+
+== Compatibility
+
+Cassandra keeps the old names and old value format for backward
+compatibility. When both the old and new names are present, the last one
+wins. That behavior is useful during upgrades, but it also means that
+duplicate or conflicting keys can hide mistakes.
+
+If you touch one of these settings, use the new name and an explicit
+unit. Keep any compatibility exceptions local to the upgrade procedure
+you are following.

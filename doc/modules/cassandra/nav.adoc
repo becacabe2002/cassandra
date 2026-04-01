@@ -98,7 +98,6 @@
 **** xref:cassandra:managing/operating/hints.adoc[Hints]
 **** xref:cassandra:managing/operating/logging.adoc[Logging]
 ***** xref:cassandra:managing/operating/auditlogging.adoc[Audit logging]
-***** xref:cassandra:managing/operating/audit_logging.adoc[Audit logging 2]
 ***** xref:cassandra:managing/operating/fqllogging.adoc[Full query logging]
 **** xref:cassandra:managing/operating/metrics.adoc[Monitoring metrics]
 **** xref:cassandra:managing/operating/repair.adoc[Repair]
